@@ -66,8 +66,9 @@ namespace IOSSafariViewNativePopupProvider
 	if (didLoadSuccessfully)
 	{
 		lua_pushstring( self.luaState, "loaded" );
-	}else
-	{
+	}
+    else
+    {
 		lua_pushstring( self.luaState, "failed" );
 	}
 	
@@ -290,6 +291,7 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
                         bgTintB = bgTintR;
                         bgTintColor = YES;
                     }
+                    lua_pop( L, 1 );
                 }
                 else if ( lua_objlen(L, -1 ) == 3)
                 {
@@ -339,6 +341,7 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
                         contTintB = contTintR;
                         contTintColor = YES;
                     }
+                    lua_pop( L, 1 );
                 }
                 else if ( lua_objlen(L, -1 ) == 3)
                 {
