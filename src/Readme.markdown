@@ -35,9 +35,40 @@ See below for description of parameters table fields.
 String with web address to be opened. Must have`http://` or `https://` url scheme.
 
 ##### `animated` (_optional_)
-
 Boolean value, if `true` controller would slide in. Otherwise it will appear instantly.
 
+#### `barCollapsingEnabled` (_optional_)
+Boolean value, Make the top nav bar "collapsable"
+
+#### `dismissButton` (_optional_)
+String value, set the dismiss button text, (string) may be one of the following:
+
+* `'Cancel'`
+* `'Close'`
+* `'Done'`
+
+#### `backgroundColor` (_optional_)
+Table, changes the color of the SafariView Background (upper and lower sections) for example:
+
+* `backgroundColor = {0.5}`
+* `backgroundColour = (0.2,0.1,0.1}`
+
+#### `controlColor` (_optional_)
+Table, changes the color of the SafariView Controls for example:
+
+* `controlColor = {0.8}`
+* `controlColour = (1,0.1,0.1}`
+
+#### `presentationStyle` (_optional_)
+String value, sets a UIModalPresentationStyle to open the SafariView with different styles. May be one of the following:
+
+* `'Automatic'` — The default presentation style chosen by the system.
+* `'formSheet'` — A presentation style that displays the content centered in the screen.
+* `'pageSheet'` — A presentation style that partially covers the underlying content.
+* `'popover'` — Indicates that the user pulled down the modal and the Safari View was closed.
+* `'fullScreen'` — A presentation style in which the presented view covers the screen.
+* `'overFullScreen'` — A view presentation style in which the presented view covers the screen.
+* `'currentContext'` — A presentation style where the content is displayed over another view controller’s content.
 
 ##### `listener` (_optional_)
 
@@ -46,7 +77,7 @@ Function to be called when safari view is loaded or closed. Field `action` would
 * `'loaded'` - initial loading is finished.
 * `'failed'` - there was an error while loading page (safari view is still displayed).
 * `'done'` - indicates that user pressed "Done" button and Safari View Controller was closed
-
+* `'dismissed'` - indicates that user pulled down the modal and Safari View Controller was closed
 
 #### Return value
 
