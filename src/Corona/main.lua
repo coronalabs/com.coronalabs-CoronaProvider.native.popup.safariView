@@ -1,3 +1,8 @@
+
+
+local myRectangle = display.newRect( display.contentCenterX, display.contentCenterY, display.contentWidth, display.contentHeight )
+myRectangle:setFillColor( 0.5 )
+
 local log = display.newText{
     text = "Tap anywhere to present safariView.\n",
     x = display.contentCenterX,
@@ -23,9 +28,14 @@ end
 local popupOptions =
 {
 	  url="https://solar2d.com"
-	, animated=true
-	, listener=safariListener
-	, entersReaderIfAvailable = true
+    , animated=true
+    , barCollapsingEnabled=true
+    , listener=safariListener
+    , entersReaderIfAvailable = false
+    , presentationStyle = "pageSheet"
+    , dismissButton = "close"
+    , backgroundColor = {0.0,0.2,0.0}
+    , controlColor = {0.9,0,0}
 }
 
 -- Check if the safari view is available

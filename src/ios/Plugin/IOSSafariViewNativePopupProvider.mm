@@ -160,9 +160,24 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 	if ( [SFSafariViewController class] )
 	{
 		BOOL animated = NO;
-		BOOL entersReaderIfAvailiable = NO;
+        BOOL entersReaderIfAvailiable = NO;
+        BOOL barCollapsingEnabled = NO;
+        
+        float bgTintR = 1;
+        float bgTintG = 1;
+        float bgTintB = 1;
+        bool bgTintColor = NO;
+        
+        float contTintR = 1;
+        float contTintG = 1;
+        float contTintB = 1;
+        bool contTintColor = NO;
+        
 		CoronaLuaRef listener = 0;
-		const char *szUrl = 0;
+        
+        const char *szUrl = 0;
+        const char *presentationStyle = 0;
+        const char *dismissButton = 0;
 		
 		if( lua_isstring( L, index) )
 		{
@@ -183,13 +198,131 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 				animated = lua_toboolean( L, -1 );
 			}
 			lua_pop( L, 1 );
-			
-			lua_getfield( L, index, "entersReaderIfAvailable" );
-			if ( lua_isboolean( L, -1 ) )
-			{
-				entersReaderIfAvailiable = lua_toboolean( L, -1 );
-			}
-			lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "entersReaderIfAvailable" );
+            if ( lua_isboolean( L, -1 ) )
+            {
+                entersReaderIfAvailiable = lua_toboolean( L, -1 );
+            }
+            lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "barCollapsingEnabled" );
+            if ( lua_isboolean( L, -1 ) )
+            {
+                barCollapsingEnabled = lua_toboolean( L, -1 );
+            }
+            lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "presentationStyle" );
+            if ( lua_isstring( L, -1 ) )
+            {
+                presentationStyle = lua_tostring( L, -1 );
+            }
+            lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "dismissButton" );
+            if ( lua_isstring( L, -1 ) )
+            {
+                dismissButton = lua_tostring( L, -1 );
+            }
+            lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "backgroundColor" );
+            if ( lua_istable( L, -1 ) )
+            {
+                if ( lua_objlen(L, -1 ) == 1)
+                {
+                    lua_rawgeti(L, -1, 1);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        bgTintR = lua_tonumber( L, -1 );
+                        bgTintG = bgTintR;
+                        bgTintB = bgTintR;
+                        bgTintColor = YES;
+                    }
+                }
+                else if ( lua_objlen(L, -1 ) == 3)
+                {
+                    lua_rawgeti(L, -1, 1);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        
+                        bgTintR = lua_tonumber( L, -1 );
+                        bgTintColor = YES;
+                        
+                    }
+                    lua_pop( L, 1 );
+                    
+                    lua_rawgeti(L, -1, 2);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        bgTintG = lua_tonumber( L, -1 );
+                        
+                    } else {
+                        bgTintColor = NO;
+                    }
+                    lua_pop( L, 1 );
+                    
+                    lua_rawgeti(L, -1, 3);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        bgTintB = lua_tonumber( L, -1 );
+                        
+                    } else {
+                        bgTintColor = NO;
+                    }
+                    lua_pop( L, 1 );
+                }
+            }
+            lua_pop( L, 1 );
+            
+            lua_getfield( L, index, "controlColor" );
+            if ( lua_istable( L, -1 ) )
+            {
+                if ( lua_objlen(L, -1 ) == 1)
+                {
+                    lua_rawgeti(L, -1, 1);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        contTintR = lua_tonumber( L, -1 );
+                        contTintG = contTintR;
+                        contTintB = contTintR;
+                        contTintColor = YES;
+                    }
+                }
+                else if ( lua_objlen(L, -1 ) == 3)
+                {
+                    lua_rawgeti(L, -1, 1);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        contTintR = lua_tonumber( L, -1 );
+                        contTintColor = YES;
+                        
+                    }
+                    lua_pop( L, 1 );
+                    
+                    lua_rawgeti(L, -1, 2);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        contTintG = lua_tonumber( L, -1 );
+                        
+                    } else {
+                        contTintColor = NO;
+                    }
+                    lua_pop( L, 1 );
+                    
+                    lua_rawgeti(L, -1, 3);
+                    if ( lua_isnumber( L, -1 ) )
+                    {
+                        contTintB = lua_tonumber( L, -1 );
+                        
+                    } else {
+                        contTintColor = NO;
+                    }
+                    lua_pop( L, 1 );
+                }
+            }
+            lua_pop( L, 1 );
 			
 			lua_getfield( L, index, "listener" );
 			if ( szUrl && CoronaLuaIsListener( L, -1, IOSSafariViewNativePopupProvider::kPopupName) )
@@ -202,17 +335,58 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 		if (szUrl)
 		{
 			@try {
+                
 				NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:szUrl]];
                 
                 SFSafariViewControllerConfiguration *config = [[SFSafariViewControllerConfiguration alloc] init];
                 config.entersReaderIfAvailable = entersReaderIfAvailiable;
+                config.barCollapsingEnabled = barCollapsingEnabled;
                 
                 SFSafariViewController* controller = [[[SFSafariViewController alloc] initWithURL:url configuration:config] autorelease];
+                
 				if (listener)
 				{
 					// listener will release itself
 					controller.delegate = [[SafariViewCloseWatch alloc] initWithLuaState:L andListener:listener];
 				}
+                
+                if (presentationStyle)
+                {
+                    if (strcmp(presentationStyle,"pageSheet")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationPageSheet;
+                    } else if (strcmp(presentationStyle,"automatic")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationAutomatic;
+                    } else if (strcmp(presentationStyle,"formSheet")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationFormSheet;
+                    } else if (strcmp(presentationStyle,"popover")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationPopover;
+                    } else if (strcmp(presentationStyle,"fullScreen")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationFullScreen;
+                    } else if (strcmp(presentationStyle,"overFullScreen")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationOverFullScreen;
+                    } else if (strcmp(presentationStyle,"currentContext")==0) {
+                        controller.modalPresentationStyle = UIModalPresentationCurrentContext;
+                
+                if (dismissButton)
+                {
+                    if (strcmp(dismissButton,"cancel")==0) {
+                        controller.dismissButtonStyle = SFSafariViewControllerDismissButtonStyleCancel;
+                    } else if (strcmp(dismissButton,"close")==0) {
+                        controller.dismissButtonStyle = SFSafariViewControllerDismissButtonStyleClose;
+                    } else if (strcmp(dismissButton,"done")==0) {
+                        controller.dismissButtonStyle = SFSafariViewControllerDismissButtonStyleDone;
+                    }
+                }
+                
+                if (bgTintColor)
+                {
+                    controller.preferredBarTintColor = [UIColor colorWithRed:bgTintR green:bgTintG blue:bgTintB alpha:1.0];
+                }
+                
+                if (contTintColor)
+                {
+                    controller.preferredControlTintColor = [UIColor colorWithRed:contTintR green:contTintG blue:contTintB alpha:1.0];
+                }
 				// Present the controller
 				id<CoronaRuntime> runtime = (id<CoronaRuntime>)CoronaLuaGetContext( L );
 				[runtime.appViewController presentViewController:controller animated:animated completion:nil];
