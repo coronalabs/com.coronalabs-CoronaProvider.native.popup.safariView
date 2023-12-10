@@ -23,20 +23,25 @@ function safariListener(event)
         print("Safari view was closed")
     elseif event.action == "dismissed" then
         print("Safari view was dismissed")
+    elseif event.action == "dismissing" then
+        print("Safari view will be dismissed")
     end
 end
 
 local popupOptions =
 {
-	  url="https://solar2d.com"
+    url="https://solar2d.com"
+    , prewarm={"https://solar2d.com","https://apple.com"}
+    -- , prewarm="https://solar2d.com"
     , animated=true
     , barCollapsingEnabled=true
     , listener=safariListener
     , entersReaderIfAvailable = false
     , presentationStyle = "pageSheet"
     , dismissButton = "close"
-    , backgroundColor = {0.0,0.2,0.0}
-    , controlColor = {0.9,0,0}
+    , backgroundColor = {0.25}
+    , controlColor = {0.5,0.5,0.8}
+}
 }
 
 -- Check if the safari view is available
@@ -47,10 +52,10 @@ if native then
 
 	if safariViewAvailable then
 		-- Show the safari view
-		native.showPopup( "safariView", popupOptions )
-		-- timer.performWithDelay(5000, function()
-		-- 	native.hidePopup( "safariView", popupOptions )
-		-- end)
+		native.prewarmUrls( "safariView", popupOptions )
+        timer.performWithDelay(3000, function()
+            native.showPopup( "safariView", popupOptions )
+        end)
 	else
 		log.text = log.text .. "\nSafari view is not supported"
 	end
@@ -74,13 +79,12 @@ else
 
 	if safariViewAvailable then
 		-- Show the safari view
-		safariView.showPopup( "safariView", popupOptions )
-		print("TRYING TO HIDE 1")
+		safariView.prewarmUrls( "safariView", popupOptions )
+		print("Prewarming ...")
 		timer.performWithDelay(3000, function()
-			print("TRYING TO HIDE")
-			safariView.hidePopup( "safariView", popupOptions )
+			print("Show ...")
+			safariView.showPopup( "safariView", popupOptions )
 		end)
-		print("TRYING TO HIDE 2")
 	else
 		log.text = log.text .. "\nSafari view is not supported"
 	end
