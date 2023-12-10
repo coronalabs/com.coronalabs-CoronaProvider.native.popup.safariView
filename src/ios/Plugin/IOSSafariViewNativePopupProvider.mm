@@ -203,7 +203,11 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 		{
 			@try {
 				NSURL *url = [NSURL URLWithString:[NSString stringWithUTF8String:szUrl]];
-				SFSafariViewController* controller = [[[SFSafariViewController alloc] initWithURL:url entersReaderIfAvailable:entersReaderIfAvailiable] autorelease];
+                
+                SFSafariViewControllerConfiguration *config = [[SFSafariViewControllerConfiguration alloc] init];
+                config.entersReaderIfAvailable = entersReaderIfAvailiable;
+                
+                SFSafariViewController* controller = [[[SFSafariViewController alloc] initWithURL:url configuration:config] autorelease];
 				if (listener)
 				{
 					// listener will release itself
