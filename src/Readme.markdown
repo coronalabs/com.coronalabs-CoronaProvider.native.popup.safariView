@@ -18,6 +18,13 @@ native.canShowPopup( "safariView" )
 
 Returns boolean value, indicating if Safari View Controller is available.
 
+### Pre-warming URLs
+```lua
+native.prewarmUrls( "safariView", {prewarm = {"https://domain1.com","https://domain2.com"}} )
+```
+
+Uses the pre-warming function of Safari View to help the webpages display faster when a Safari View is opened.
+
 ### Showing Safari View Controller
 
 ```lua

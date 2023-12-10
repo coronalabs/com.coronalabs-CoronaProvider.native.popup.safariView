@@ -24,7 +24,8 @@ namespace IOSSafariViewNativePopupProvider
 
 	int canShowPopup( lua_State *L );
 	int hidePopup( lua_State *L );
-	int showPopup( lua_State *L );
+    int showPopup( lua_State *L );
+    int prewarmUrls( lua_State *L );
 };
 
 
@@ -499,13 +500,81 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 	
 	lua_pushboolean( L, result );
 	return 1;
+// [Lua] native.prewarmURLs( "safariView", { url="https://coronalabs.com"} )
+int
+IOSSafariViewNativePopupProvider::prewarmUrls( lua_State *L )
+{
+    int index = 2;
+    bool result = false;
+    
+    if ( [SFSafariViewController class] )
+    {
+        NSMutableArray *urls = [[NSMutableArray alloc] init];
+        
+       if ( lua_istable( L, index ) )
+        {
+            lua_getfield( L, index, "prewarm" );
+            if ( lua_istable( L, -1 ) )
+            {
+               long entries = lua_objlen(L, -1 );
+               
+               for (int i = 1; i <= entries; i++)
+               {
+                   lua_rawgeti(L, -1, i);
+                   if ( lua_isstring( L, -1 ) )
+                   {
+                       [urls addObject:[NSURL URLWithString:[NSString stringWithUTF8String:lua_tostring( L, -1 )]]];
+                       NSLog(@"PREWARM: %@",[NSString stringWithUTF8String:lua_tostring( L, -1 )]);
+                   }
+                   lua_pop( L, 1 );
+               }
+            }
+            else if ( lua_isstring( L, -1 ) )
+            {
+                [urls addObject:[NSURL URLWithString:[NSString stringWithUTF8String:lua_tostring( L, -1 )]]];
+                NSLog(@"PREWARM: %@",[NSString stringWithUTF8String:lua_tostring( L, -1 )]);
+            }
+            lua_pop( L, 1 );
+        }
+        
+        if (([urls count]>0))
+        {
+            @try {
+                
+                if (@available(iOS 15.0, *)) {
+                    [[SFSafariViewController prewarmConnectionsToURLs: urls] autorelease];
+                    result = true;
+//                    SFSafariViewControllerPrewarmingToken* preWarmToken = [[SFSafariViewController prewarmConnectionsToURLs: @[url]] autorelease];
+                } else {
+                    CoronaLuaWarning( L, "safariView.prewarmUrls() iOS 15.0 or later requred" );
+                }
+                
+            }
+            @catch (NSException *exception) {
+                const char* err = [exception.reason UTF8String];
+                if ( !err)
+                {
+                    err = "unknown";
+                }
+                CoronaLuaWarning( L, "safariView.prewarmUrls(), internal error: %s", err);
+            }
+        }
+        else
+        {
+            CoronaLuaWarning( L, "safariView.prewarmUrls(), no urls provided as a 'prewarm' tab;e" );
+        }
+    }
+    
+    lua_pushboolean( L, result );
+    return 1;
 }
 
 // ----------------------------------------------------------------------------
 static const luaL_Reg kVTable[] =
 {
 	{ "canShowPopup", IOSSafariViewNativePopupProvider::canShowPopup },
-	{ "showPopup", IOSSafariViewNativePopupProvider::showPopup },
+    { "prewarmUrls", IOSSafariViewNativePopupProvider::prewarmUrls },
+    { "showPopup", IOSSafariViewNativePopupProvider::showPopup },
 	{ "hidePopup", IOSSafariViewNativePopupProvider::hidePopup },
 
 	{ NULL, NULL }
