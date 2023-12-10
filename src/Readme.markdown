@@ -77,6 +77,7 @@ Function to be called when safari view is loaded or closed. Field `action` would
 * `'loaded'` - initial loading is finished.
 * `'failed'` - there was an error while loading page (safari view is still displayed).
 * `'done'` - indicates that user pressed "Done" button and Safari View Controller was closed
+* `'dismissing'` - indicates that user pulled down the modal and Safari View Controller may be closed
 * `'dismissed'` - indicates that user pulled down the modal and Safari View Controller was closed
 
 #### Return value

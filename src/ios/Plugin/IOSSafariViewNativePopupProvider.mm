@@ -106,7 +106,7 @@ namespace IOSSafariViewNativePopupProvider
 
 - (void)presentationControllerDidDismiss:(UIPresentationController *)controller;
 
-//- (void)safariViewController:(SFSafariViewController *)controller didCompleteInitialLoad:(BOOL)didLoadSuccessfully;
+- (void)presentationControllerWillDismiss:(UIPresentationController *)controller;
 
 @property (nonatomic, assign) lua_State *luaState;
 @property (nonatomic, assign) Corona::Lua::Ref listenerRef;
@@ -144,6 +144,22 @@ namespace IOSSafariViewNativePopupProvider
     //cleanup
     CoronaLuaDeleteRef( self.luaState, self.listenerRef );
     [self release];
+}
+
+-(void)presentationControllerWillDismiss:(UIPresentationController *)controller
+{
+    CoronaLuaNewEvent( self.luaState, CoronaEventPopupName() );
+    
+    lua_pushstring( self.luaState, IOSSafariViewNativePopupProvider::kPopupName );
+    lua_setfield( self.luaState, -2, CoronaEventTypeKey() );
+    
+    lua_pushstring( self.luaState, "dismissing" );
+    lua_setfield( self.luaState, -2, "action" );
+    
+    lua_pushboolean( self.luaState, 0 );
+    lua_setfield( self.luaState, -2, CoronaEventIsErrorKey() );
+    
+    CoronaLuaDispatchEvent( self.luaState, self.listenerRef, 1 );
 }
 
 @end
