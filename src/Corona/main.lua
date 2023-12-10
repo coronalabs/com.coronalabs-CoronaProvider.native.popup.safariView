@@ -12,7 +12,6 @@ local log = display.newText{
     align = "center"
 }
 
-
 function safariListener(event)
 	log.text = log.text .. "\nAction received: " .. event.action
 
@@ -20,9 +19,11 @@ function safariListener(event)
 		print("Page was not loaded properly :(")
 	elseif event.action == "loaded" then
 		print("Good news, page was loaded! ")
-	elseif event.action == "done" then
-		print("Safari view was closed")
-	end
+    elseif event.action == "done" then
+        print("Safari view was closed")
+    elseif event.action == "dismissed" then
+        print("Safari view was dismissed")
+    end
 end
 
 local popupOptions =
@@ -107,7 +108,4 @@ local function onResize( event )
     print("Resize event!")
 end
 
-
 Runtime:addEventListener( "resize", onResize )
-
-

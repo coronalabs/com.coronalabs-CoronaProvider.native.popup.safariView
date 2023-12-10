@@ -99,6 +99,54 @@ namespace IOSSafariViewNativePopupProvider
 
 @end
 
+@interface SafariViewDismissWatch : NSObject <UIAdaptivePresentationControllerDelegate>
+
+- (instancetype)initWithLuaState: (lua_State*)L andListener:(CoronaLuaRef)listener;
+
+- (void)presentationControllerDidDismiss:(UIPresentationController *)controller;
+
+//- (void)safariViewController:(SFSafariViewController *)controller didCompleteInitialLoad:(BOOL)didLoadSuccessfully;
+
+@property (nonatomic, assign) lua_State *luaState;
+@property (nonatomic, assign) Corona::Lua::Ref listenerRef;
+
+@end
+
+@implementation SafariViewDismissWatch
+
+-(instancetype)initWithLuaState:(lua_State *)L andListener:(CoronaLuaRef)listener
+{
+    self = [super init];
+    if (self)
+    {
+        self.luaState = L;
+        self.listenerRef = listener;
+    }
+    return self;
+}
+
+-(void)presentationControllerDidDismiss:(UIPresentationController *)controller
+{
+    CoronaLuaNewEvent( self.luaState, CoronaEventPopupName() );
+    
+    lua_pushstring( self.luaState, IOSSafariViewNativePopupProvider::kPopupName );
+    lua_setfield( self.luaState, -2, CoronaEventTypeKey() );
+    
+    lua_pushstring( self.luaState, "dismissed" );
+    lua_setfield( self.luaState, -2, "action" );
+    
+    lua_pushboolean( self.luaState, 0 );
+    lua_setfield( self.luaState, -2, CoronaEventIsErrorKey() );
+    
+    CoronaLuaDispatchEvent( self.luaState, self.listenerRef, 1 );
+    
+    //cleanup
+    CoronaLuaDeleteRef( self.luaState, self.listenerRef );
+    [self release];
+}
+
+@end
+
 // [lua] local safariViewAvailiable = native.canShowPopup( "safariView" )
 int
 IOSSafariViewNativePopupProvider::canShowPopup( lua_State *L )
@@ -162,6 +210,8 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
 		BOOL animated = NO;
         BOOL entersReaderIfAvailiable = NO;
         BOOL barCollapsingEnabled = NO;
+        
+        BOOL uiPresentationModal = NO;
         
         float bgTintR = 1;
         float bgTintG = 1;
@@ -354,18 +404,27 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
                 {
                     if (strcmp(presentationStyle,"pageSheet")==0) {
                         controller.modalPresentationStyle = UIModalPresentationPageSheet;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"automatic")==0) {
                         controller.modalPresentationStyle = UIModalPresentationAutomatic;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"formSheet")==0) {
                         controller.modalPresentationStyle = UIModalPresentationFormSheet;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"popover")==0) {
                         controller.modalPresentationStyle = UIModalPresentationPopover;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"fullScreen")==0) {
                         controller.modalPresentationStyle = UIModalPresentationFullScreen;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"overFullScreen")==0) {
                         controller.modalPresentationStyle = UIModalPresentationOverFullScreen;
+                        uiPresentationModal = YES;
                     } else if (strcmp(presentationStyle,"currentContext")==0) {
                         controller.modalPresentationStyle = UIModalPresentationCurrentContext;
+                        uiPresentationModal = YES;
+                    }
+                }
                 
                 if (dismissButton)
                 {
@@ -387,6 +446,14 @@ IOSSafariViewNativePopupProvider::showPopup( lua_State *L )
                 {
                     controller.preferredControlTintColor = [UIColor colorWithRed:contTintR green:contTintG blue:contTintB alpha:1.0];
                 }
+                
+                
+                if (listener and uiPresentationModal)
+                {
+                    // listener will release itself
+                    controller.presentationController.delegate = [[SafariViewDismissWatch alloc] initWithLuaState:L andListener:listener];
+                }
+                
 				// Present the controller
 				id<CoronaRuntime> runtime = (id<CoronaRuntime>)CoronaLuaGetContext( L );
 				[runtime.appViewController presentViewController:controller animated:animated completion:nil];
