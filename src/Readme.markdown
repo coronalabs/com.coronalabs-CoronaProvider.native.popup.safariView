@@ -18,6 +18,13 @@ native.canShowPopup( "safariView" )
 
 Returns boolean value, indicating if Safari View Controller is available.
 
+### Checking if the view is open
+```lua
+native.canHidePopup( "safariView" )
+```
+
+Since there are now presentation styles which can leave the popup showing with your app active, this allows you to check if the pop-up is currently shown.
+
 ### Pre-warming URLs
 ```lua
 native.prewarmUrls( "safariView", {prewarm = {"https://domain1.com","https://domain2.com"}} )
