@@ -1,3 +1,8 @@
+
+
+local myRectangle = display.newRect( display.contentCenterX, display.contentCenterY, display.contentWidth, display.contentHeight )
+myRectangle:setFillColor( 0.5 )
+
 local log = display.newText{
     text = "Tap anywhere to present safariView.\n",
     x = display.contentCenterX,
@@ -7,7 +12,6 @@ local log = display.newText{
     align = "center"
 }
 
-
 function safariListener(event)
 	log.text = log.text .. "\nAction received: " .. event.action
 
@@ -15,17 +19,29 @@ function safariListener(event)
 		print("Page was not loaded properly :(")
 	elseif event.action == "loaded" then
 		print("Good news, page was loaded! ")
-	elseif event.action == "done" then
-		print("Safari view was closed")
-	end
+    elseif event.action == "done" then
+        print("Safari view was closed")
+    elseif event.action == "dismissed" then
+        print("Safari view was dismissed")
+    elseif event.action == "dismissing" then
+        print("Safari view will be dismissed")
+    end
 end
 
 local popupOptions =
 {
-	  url="https://solar2d.com"
-	, animated=true
-	, listener=safariListener
-	, entersReaderIfAvailable = true
+    url="https://solar2d.com"
+    , prewarm={"https://solar2d.com","https://apple.com"}
+    -- , prewarm="https://solar2d.com"
+    , animated=true
+    , barCollapsingEnabled=true
+    , listener=safariListener
+    , entersReaderIfAvailable = false
+    , presentationStyle = "pageSheet"
+    , dismissButton = "close"
+    , backgroundColor = {0.25}
+    , controlColor = {0.5,0.5,0.8}
+}
 }
 
 -- Check if the safari view is available
@@ -36,10 +52,10 @@ if native then
 
 	if safariViewAvailable then
 		-- Show the safari view
-		native.showPopup( "safariView", popupOptions )
-		-- timer.performWithDelay(5000, function()
-		-- 	native.hidePopup( "safariView", popupOptions )
-		-- end)
+		native.prewarmUrls( "safariView", popupOptions )
+        timer.performWithDelay(3000, function()
+            native.showPopup( "safariView", popupOptions )
+        end)
 	else
 		log.text = log.text .. "\nSafari view is not supported"
 	end
@@ -63,13 +79,12 @@ else
 
 	if safariViewAvailable then
 		-- Show the safari view
-		safariView.showPopup( "safariView", popupOptions )
-		print("TRYING TO HIDE 1")
+		safariView.prewarmUrls( "safariView", popupOptions )
+		print("Prewarming ...")
 		timer.performWithDelay(3000, function()
-			print("TRYING TO HIDE")
-			safariView.hidePopup( "safariView", popupOptions )
+			print("Show ...")
+			safariView.showPopup( "safariView", popupOptions )
 		end)
-		print("TRYING TO HIDE 2")
 	else
 		log.text = log.text .. "\nSafari view is not supported"
 	end
@@ -97,7 +112,4 @@ local function onResize( event )
     print("Resize event!")
 end
 
-
 Runtime:addEventListener( "resize", onResize )
-
-

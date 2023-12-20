@@ -6,7 +6,7 @@ application =
 		height = 480,
 		-- scale = "zoomEven", 
 		-- scale = "none", 
-		scale = "letterbox",
-		-- scale = "zoomStretch", 
+		-- scale = "letterbox",
+		scale = "zoomStretch", 
 	},
 } 
