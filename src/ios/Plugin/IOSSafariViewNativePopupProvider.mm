@@ -22,8 +22,9 @@ namespace IOSSafariViewNativePopupProvider
 	// This corresponds to the event name, e.g. [Lua] event.name
 	static const char *kPopupName = "safariView";
 
-	int canShowPopup( lua_State *L );
-	int hidePopup( lua_State *L );
+    int canShowPopup( lua_State *L );
+    int canHidePopup( lua_State *L );
+    int hidePopup( lua_State *L );
     int showPopup( lua_State *L );
     int prewarmUrls( lua_State *L );
 };
@@ -172,6 +173,35 @@ IOSSafariViewNativePopupProvider::canShowPopup( lua_State *L )
 	bool canShow = ( NSClassFromString( @"SFSafariViewController" ) != Nil );
 	lua_pushboolean( L, canShow );
 	return 1;
+}
+// [lua] local safariViewAvailiable = native.canHidePopup( "safariView" )
+int
+IOSSafariViewNativePopupProvider::canHidePopup( lua_State *L )
+{
+    bool result = false;
+    
+    if ( [SFSafariViewController class] )
+    {
+        
+        @try {
+            id<CoronaRuntime> runtime = (id<CoronaRuntime>)CoronaLuaGetContext( L );
+            UIViewController *vc = runtime.appViewController;
+            if([vc.presentedViewController isKindOfClass:[SFSafariViewController class]])
+            {
+                result = true;
+            }
+        }
+        @catch (NSException *exception) {
+            const char* err = [exception.reason UTF8String];
+            if ( !err)
+            {
+                err = "unknown";
+            }
+            CoronaLuaWarning( L, "safariView.canHidePopup(), internal error: %s", err);
+        }
+    }
+    lua_pushboolean(L, result);
+    return 1;
 }
 
 int
@@ -572,12 +602,13 @@ IOSSafariViewNativePopupProvider::prewarmUrls( lua_State *L )
 // ----------------------------------------------------------------------------
 static const luaL_Reg kVTable[] =
 {
-	{ "canShowPopup", IOSSafariViewNativePopupProvider::canShowPopup },
+    { "canShowPopup", IOSSafariViewNativePopupProvider::canShowPopup },
+    { "canHidePopup", IOSSafariViewNativePopupProvider::canHidePopup },
     { "prewarmUrls", IOSSafariViewNativePopupProvider::prewarmUrls },
     { "showPopup", IOSSafariViewNativePopupProvider::showPopup },
-	{ "hidePopup", IOSSafariViewNativePopupProvider::hidePopup },
+    { "hidePopup", IOSSafariViewNativePopupProvider::hidePopup },
 
-	{ NULL, NULL }
+    { NULL, NULL }
 };
 
 CORONA_EXPORT int luaopen_CoronaProvider_native_popup_safariView( lua_State *L )
